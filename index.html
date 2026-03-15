@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Refrigerator & Freezer Temperature Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding-bottom: 70px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header h1 i {
+            font-size: 1.5rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.primary {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .stat-icon.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Button */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-input.error {
+            border-color: var(--danger-color);
+        }
+
+        /* Device Grid */
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .device-item {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .device-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .device-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .device-type {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .device-type.fridge {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        .device-type.freezer {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .device-info {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Temperature Input Grid */
+        .temp-input-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .temp-input-item {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .temp-input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .temp-input-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .temp-input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .temp-input-small {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--bg-color);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: var(--bg-color);
+        }
+
+        .temp-normal {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .temp-abnormal {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--danger-color);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--warning-color);
+        }
+
+        .alert-info {
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            color: var(--primary-color);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            flex: 1;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            text-decoration: none;
+            padding: 0.5rem;
+        }
+
+        .nav-item:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-item i {
+            font-size: 1.5rem;
+        }
+
+        .nav-item span {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Page Content */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar .form-input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .device-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .filter-bar .form-input {
+                width: 100%;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .temp-input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1><i class="fas fa-temperature-low"></i> Temperature Management System</h1>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <div class="stat-value" id="total-devices">14</div>
+                    <div class="stat-label">Total Devices</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-value" id="today-records">0</div>
+                    <div class="stat-label">Today's Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-value" id="abnormal-count">0</div>
+                    <div class="stat-label">Abnormal Temps</div>
+                </div>
+            </div>
+
+            <div id="abnormal-alert" style="display: none;"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Recent Temperature Records
+                    </div>
+                    <button class="btn btn-primary" onclick="showRecordPage()">
+                        <i class="fas fa-plus"></i> Add Record
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="recent-records-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Period</th>
+                                <th>Device</th>
+                                <th>Temperature</th>
+                                <th>Person</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-records-body">
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <p>No records yet.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Record Page -->
+        <div id="record-page" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-plus-circle"></i>
+                        Record Temperature
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" id="record-date" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Period</label>
+                    <select id="record-period" class="form-input">
+                        <option value="AM">AM (Morning)</option>
+                        <option value="PM">PM (Afternoon)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Person in Charge</label>
+                    <input type="text" id="record-person" class="form-input" placeholder="Enter name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes (Optional)</label>
+                    <input type="text" id="record-memo" class="form-input" placeholder="Special notes">
+                </div>
+
+                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid var(--border-color);">
+
+                <div class="card-title" style="margin-bottom: 1rem;">
+                    <i class="fas fa-thermometer-half"></i>
+                    Temperature Input by Device
+                </div>
+
+                <div class="temp-input-grid" id="temp-inputs">
+                    <!-- Dynamically generated -->
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+                    <button class="btn btn-success btn-block" onclick="saveTemperatureRecords()">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearRecordForm()">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devices Page -->
+        <div id="devices-page" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-cog"></i>
+                        Device Management
+                    </div>
+                </div>
+
+                <div class="device-grid" id="devices-list">
+                    <!-- Dynamically generated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Page -->
+        <div id="report-page" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        Monthly Report
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="month" id="report-month" class="form-input" style="max-width: 200px;">
+                    <select id="report-device" class="form-input" style="max-width: 250px;">
+                        <option value="all">All Devices</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadReport()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Temperature Trend
+                </div>
+                <div class="chart-container">
+                    <canvas id="temperature-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="summary-grid" id="report-summary">
+                <!-- Dynamically generated -->
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Abnormal Temperature Summary
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Device</th>
+                                <th>Occurrences</th>
+                                <th>Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="abnormal-summary-body">
+                            <tr>
+                                <td colspan="3" class="empty-state">
+                                    <p>No data available.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-user"></i>
+                    Records by Person
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Person</th>
+                                <th>Record Count</th>
+                                <th>Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="person-summary-body">
+                            <tr>
+                                <td colspan="3" class="empty-state">
+                                    <p>No data available.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a class="nav-item active" onclick="showPage('dashboard')">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+        <a class="nav-item" onclick="showPage('record')">
+            <i class="fas fa-edit"></i>
+            <span>Record</span>
+        </a>
+        <a class="nav-item" onclick="showPage('devices')">
+            <i class="fas fa-box"></i>
+            <span>Devices</span>
+        </a>
+        <a class="nav-item" onclick="showPage('report')">
+            <i class="fas fa-chart-pie"></i>
+            <span>Report</span>
+        </a>
+    </div>
+
+    <!-- Device Edit Modal -->
+    <div id="device-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Device Settings</div>
+                <button class="modal-close" onclick="closeDeviceModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="device-form">
+                <input type="hidden" id="edit-device-id">
+                
+                <div class="form-group">
+                    <label class="form-label">Device Name</label>
+                    <input type="text" id="edit-device-name" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Minimum Temperature (°F)</label>
+                    <input type="number" id="edit-min-temp" class="form-input" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Maximum Temperature (°F)</label>
+                    <input type="number" id="edit-max-temp" class="form-input" step="0.1" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeDeviceModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // Data Models and Storage
+        // =============================================
+        
+        const STORAGE_KEYS = {
+            DEVICES: 'temp_monitor_devices',
+            RECORDS: 'temp_monitor_records'
+        };
+
+        // Initialize default devices
+        function initializeDevices() {
+            let devices = getDevices();
+            if (devices.length === 0) {
+                devices = [];
+                
+                // 10 Refrigerators (32°F to 50°F)
+                for (let i = 1; i <= 10; i++) {
+                    devices.push({
+                        id: `fridge-${i}`,
+                        name: `Refrigerator ${i}`,
+                        type: 'fridge',
+                        minTemp: 32,
+                        maxTemp: 50
+                    });
+                }
+                
+                // 4 Freezers (-13°F to 5°F)
+                for (let i = 1; i <= 4; i++) {
+                    devices.push({
+                        id: `freezer-${i}`,
+                        name: `Freezer ${i}`,
+                        type: 'freezer',
+                        minTemp: -13,
+                        maxTemp: 5
+                    });
+                }
+                
+                saveDevices(devices);
+            }
+            return devices;
+        }
+
+        function getDevices() {
+            const data = localStorage.getItem(STORAGE_KEYS.DEVICES);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveDevices(devices) {
+            localStorage.setItem(STORAGE_KEYS.DEVICES, JSON.stringify(devices));
+        }
+
+        function getRecords() {
+            const data = localStorage.getItem(STORAGE_KEYS.RECORDS);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveRecords(records) {
+            localStorage.setItem(STORAGE_KEYS.RECORDS, JSON.stringify(records));
+        }
+
+        function addRecord(record) {
+            const records = getRecords();
+            record.id = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            record.timestamp = Date.now();
+            records.push(record);
+            saveRecords(records);
+            return record;
+        }
+
+        function updateDevice(deviceId, updates) {
+            const devices = getDevices();
+            const index = devices.findIndex(d => d.id === deviceId);
+            if (index !== -1) {
+                devices[index] = { ...devices[index], ...updates };
+                saveDevices(devices);
+                return devices[index];
+            }
+            return null;
+        }
+
+        function isTemperatureAbnormal(temp, device) {
+            return temp < device.minTemp || temp > device.maxTemp;
+        }
+
+        // =============================================
+        // Navigation
+        // =============================================
+        
+        function showPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected page
+            const pageElement = document.getElementById(`${pageName}-page`);
+            if (pageElement) {
+                pageElement.classList.add('active');
+            }
+            
+            // Add active to clicked nav item
+            event.currentTarget.classList.add('active');
+            
+            // Load page-specific data
+            if (pageName === 'dashboard') {
+                loadDashboard();
+            } else if (pageName === 'record') {
+                initRecordForm();
+            } else if (pageName === 'devices') {
+                loadDevices();
+            } else if (pageName === 'report') {
+                initReport();
+            }
+        }
+
+        function showRecordPage() {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.getElementById('record-page').classList.add('active');
+            document.querySelectorAll('.nav-item')[1].classList.add('active');
+            initRecordForm();
+        }
+
+        // =============================================
+        // Dashboard
+        // =============================================
+        
+        function loadDashboard() {
+            const devices = getDevices();
+            const records = getRecords();
+            
+            // Get today's records
+            const today = new Date().toISOString().split('T')[0];
+            const todayRecords = records.filter(r => r.date === today);
+            
+            // Count abnormal temperatures today
+            let abnormalCount = 0;
+            const abnormalDevices = new Set();
+            
+            todayRecords.forEach(record => {
+                const device = devices.find(d => d.id === record.deviceId);
+                if (device && isTemperatureAbnormal(record.temperature, device)) {
+                    abnormalCount++;
+                    abnormalDevices.add(device.name);
+                }
+            });
+            
+            // Update stats
+            document.getElementById('total-devices').textContent = devices.length;
+            document.getElementById('today-records').textContent = todayRecords.length;
+            document.getElementById('abnormal-count').textContent = abnormalCount;
+            
+            // Show abnormal alert if any
+            const alertDiv = document.getElementById('abnormal-alert');
+            if (abnormalCount > 0) {
+                alertDiv.style.display = 'block';
+                alertDiv.className = 'alert alert-danger';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Abnormal Temperature Detected!</strong><br>
+                        ${abnormalCount} abnormal temperature(s) recorded in: ${Array.from(abnormalDevices).join(', ')}
+                    </div>
+                `;
+            } else {
+                alertDiv.style.display = 'none';
+            }
+            
+            // Load recent records (last 20)
+            loadRecentRecords();
+        }
+
+        function loadRecentRecords() {
+            const devices = getDevices();
+            const records = getRecords().sort((a, b) => b.timestamp - a.timestamp).slice(0, 20);
+            const tbody = document.getElementById('recent-records-body');
+            
+            if (records.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            No records yet.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = records.map(record => {
+                const device = devices.find(d => d.id === record.deviceId);
+                if (!device) return '';
+                
+                const isAbnormal = isTemperatureAbnormal(record.temperature, device);
+                const tempClass = isAbnormal ? 'temp-abnormal' : 'temp-normal';
+                const badgeClass = isAbnormal ? 'badge-danger' : 'badge-success';
+                const statusText = isAbnormal ? 'Abnormal' : 'Normal';
+                
+                return `
+                    <tr>
+                        <td>${record.date}</td>
+                        <td>${record.period}</td>
+                        <td>${device.name}</td>
+                        <td class="${tempClass}">${record.temperature}°F</td>
+                        <td>${record.person}</td>
+                        <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // =============================================
+        // Record Page
+        // =============================================
+        
+        function initRecordForm() {
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('record-date').value = today;
+            
+            // Set current period (AM: before 12pm, PM: after 12pm)
+            const hour = new Date().getHours();
+            document.getElementById('record-period').value = hour < 12 ? 'AM' : 'PM';
+            
+            // Generate temperature input fields
+            generateTempInputs();
+        }
+
+        function generateTempInputs() {
+            const devices = getDevices();
+            const container = document.getElementById('temp-inputs');
+            
+            container.innerHTML = devices.map(device => {
+                const typeLabel = device.type === 'fridge' ? 'Refrigerator' : 'Freezer';
+                const typeClass = device.type === 'fridge' ? 'fridge' : 'freezer';
+                
+                return `
+                    <div class="temp-input-item">
+                        <div class="temp-input-header">
+                            <div class="temp-input-name">${device.name}</div>
+                            <span class="device-type ${typeClass}">${typeLabel}</span>
+                        </div>
+                        <div class="temp-input-row">
+                            <input 
+                                type="number" 
+                                step="0.1" 
+                                class="form-input temp-input-small" 
+                                placeholder="Temperature (°F)"
+                                id="temp-${device.id}"
+                                data-device-id="${device.id}"
+                                data-min="${device.minTemp}"
+                                data-max="${device.maxTemp}"
+                            >
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; padding: 0.5rem;">
+                                Normal range: ${device.minTemp}°F ~ ${device.maxTemp}°F
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function saveTemperatureRecords() {
+            const date = document.getElementById('record-date').value;
+            const period = document.getElementById('record-period').value;
+            const person = document.getElementById('record-person').value.trim();
+            const memo = document.getElementById('record-memo').value.trim();
+            
+            if (!date || !person) {
+                alert('Please enter date and person in charge.');
+                return;
+            }
+            
+            const devices = getDevices();
+            const records = [];
+            let hasError = false;
+            
+            devices.forEach(device => {
+                const input = document.getElementById(`temp-${device.id}`);
+                const temp = parseFloat(input.value);
+                
+                if (!isNaN(temp)) {
+                    records.push({
+                        date: date,
+                        period: period,
+                        deviceId: device.id,
+                        temperature: temp,
+                        person: person,
+                        memo: memo
+                    });
+                }
+            });
+            
+            if (records.length === 0) {
+                alert('Please enter at least one temperature.');
+                return;
+            }
+            
+            // Save all records
+            records.forEach(record => addRecord(record));
+            
+            alert(`${records.length} temperature record(s) saved successfully.`);
+            clearRecordForm();
+            showPage('dashboard');
+        }
+
+        function clearRecordForm() {
+            document.getElementById('record-person').value = '';
+            document.getElementById('record-memo').value = '';
+            
+            const devices = getDevices();
+            devices.forEach(device => {
+                const input = document.getElementById(`temp-${device.id}`);
+                if (input) input.value = '';
+            });
+        }
+
+        // =============================================
+        // Devices Page
+        // =============================================
+        
+        function loadDevices() {
+            const devices = getDevices();
+            const container = document.getElementById('devices-list');
+            
+            container.innerHTML = devices.map(device => {
+                const typeLabel = device.type === 'fridge' ? 'Refrigerator' : 'Freezer';
+                const typeClass = device.type === 'fridge' ? 'fridge' : 'freezer';
+                
+                return `
+                    <div class="device-item">
+                        <div class="device-header">
+                            <div class="device-name">${device.name}</div>
+                            <span class="device-type ${typeClass}">${typeLabel}</span>
+                        </div>
+                        <div class="device-info">
+                            <i class="fas fa-temperature-low"></i>
+                            Normal temperature range: <strong>${device.minTemp}°F ~ ${device.maxTemp}°F</strong>
+                        </div>
+                        <button class="btn btn-primary btn-block" onclick="editDevice('${device.id}')">
+                            <i class="fas fa-edit"></i> Edit Settings
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function editDevice(deviceId) {
+            const devices = getDevices();
+            const device = devices.find(d => d.id === deviceId);
+            
+            if (!device) return;
+            
+            document.getElementById('edit-device-id').value = device.id;
+            document.getElementById('edit-device-name').value = device.name;
+            document.getElementById('edit-min-temp').value = device.minTemp;
+            document.getElementById('edit-max-temp').value = device.maxTemp;
+            
+            document.getElementById('device-modal').classList.add('active');
+        }
+
+        function closeDeviceModal() {
+            document.getElementById('device-modal').classList.remove('active');
+            document.getElementById('device-form').reset();
+        }
+
+        document.getElementById('device-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const deviceId = document.getElementById('edit-device-id').value;
+            const name = document.getElementById('edit-device-name').value.trim();
+            const minTemp = parseFloat(document.getElementById('edit-min-temp').value);
+            const maxTemp = parseFloat(document.getElementById('edit-max-temp').value);
+            
+            if (minTemp >= maxTemp) {
+                alert('Minimum temperature must be less than maximum temperature.');
+                return;
+            }
+            
+            updateDevice(deviceId, {
+                name: name,
+                minTemp: minTemp,
+                maxTemp: maxTemp
+            });
+            
+            alert('Device settings saved successfully.');
+            closeDeviceModal();
+            loadDevices();
+        });
+
+        // =============================================
+        // Report Page
+        // =============================================
+        
+        let temperatureChart = null;
+
+        function initReport() {
+            // Set current month
+            const today = new Date();
+            const currentMonth = today.toISOString().substring(0, 7);
+            document.getElementById('report-month').value = currentMonth;
+            
+            // Populate device select
+            const devices = getDevices();
+            const select = document.getElementById('report-device');
+            select.innerHTML = '<option value="all">All Devices</option>' + 
+                devices.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            
+            // Load initial report
+            loadReport();
+        }
+
+        function loadReport() {
+            const month = document.getElementById('report-month').value;
+            const deviceFilter = document.getElementById('report-device').value;
+            
+            if (!month) {
+                alert('Please select a month.');
+                return;
+            }
+            
+            const devices = getDevices();
+            const records = getRecords().filter(r => r.date.startsWith(month));
+            
+            // Filter by device if selected
+            const filteredRecords = deviceFilter === 'all' 
+                ? records 
+                : records.filter(r => r.deviceId === deviceFilter);
+            
+            // Generate chart
+            generateTemperatureChart(filteredRecords, devices, deviceFilter);
+            
+            // Generate summary
+            generateReportSummary(filteredRecords, devices);
+            
+            // Generate abnormal summary
+            generateAbnormalSummary(filteredRecords, devices);
+            
+            // Generate person summary
+            generatePersonSummary(filteredRecords);
+        }
+
+        function generateTemperatureChart(records, devices, deviceFilter) {
+            const ctx = document.getElementById('temperature-chart');
+            
+            if (!ctx) return;
+            
+            // Destroy existing chart
+            if (temperatureChart) {
+                temperatureChart.destroy();
+            }
+            
+            // Group records by date and device
+            const dataByDevice = {};
+            const dates = new Set();
+            
+            records.forEach(record => {
+                dates.add(record.date);
+                if (!dataByDevice[record.deviceId]) {
+                    dataByDevice[record.deviceId] = {};
+                }
+                if (!dataByDevice[record.deviceId][record.date]) {
+                    dataByDevice[record.deviceId][record.date] = [];
+                }
+                dataByDevice[record.deviceId][record.date].push(record.temperature);
+            });
+            
+            const sortedDates = Array.from(dates).sort();
+            
+            // Create datasets
+            const datasets = [];
+            const colors = [
+                '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+                '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16',
+                '#6366f1', '#a855f7', '#f43f5e', '#22d3ee', '#facc15'
+            ];
+            
+            if (deviceFilter === 'all') {
+                // Show all devices
+                devices.forEach((device, index) => {
+                    if (dataByDevice[device.id]) {
+                        const data = sortedDates.map(date => {
+                            const temps = dataByDevice[device.id][date] || [];
+                            return temps.length > 0 
+                                ? temps.reduce((a, b) => a + b, 0) / temps.length 
+                                : null;
+                        });
+                        
+                        datasets.push({
+                            label: device.name,
+                            data: data,
+                            borderColor: colors[index % colors.length],
+                            backgroundColor: colors[index % colors.length] + '20',
+                            tension: 0.3,
+                            fill: false
+                        });
+                    }
+                });
+            } else {
+                // Show single device with min/max range
+                const device = devices.find(d => d.id === deviceFilter);
+                if (device && dataByDevice[device.id]) {
+                    const avgData = sortedDates.map(date => {
+                        const temps = dataByDevice[device.id][date] || [];
+                        return temps.length > 0 
+                            ? temps.reduce((a, b) => a + b, 0) / temps.length 
+                            : null;
+                    });
+                    
+                    datasets.push({
+                        label: device.name + ' (Average)',
+                        data: avgData,
+                        borderColor: colors[0],
+                        backgroundColor: colors[0] + '20',
+                        tension: 0.3,
+                        fill: false
+                    });
+                    
+                    // Add min/max range lines
+                    datasets.push({
+                        label: 'Maximum Allowed',
+                        data: sortedDates.map(() => device.maxTemp),
+                        borderColor: '#ef4444',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    });
+                    
+                    datasets.push({
+                        label: 'Minimum Allowed',
+                        data: sortedDates.map(() => device.minTemp),
+                        borderColor: '#3b82f6',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    });
+                }
+            }
+            
+            temperatureChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(1) + '°F';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Temperature (°F)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateReportSummary(records, devices) {
+            const container = document.getElementById('report-summary');
+            
+            if (records.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No data available.</p></div>';
+                return;
+            }
+            
+            // Calculate statistics
+            const temperatures = records.map(r => r.temperature);
+            const avgTemp = temperatures.reduce((a, b) => a + b, 0) / temperatures.length;
+            const minTemp = Math.min(...temperatures);
+            const maxTemp = Math.max(...temperatures);
+            
+            let abnormalCount = 0;
+            records.forEach(record => {
+                const device = devices.find(d => d.id === record.deviceId);
+                if (device && isTemperatureAbnormal(record.temperature, device)) {
+                    abnormalCount++;
+                }
+            });
+            
+            const abnormalRate = (abnormalCount / records.length * 100).toFixed(1);
+            
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <div class="stat-value">${avgTemp.toFixed(1)}°F</div>
+                    <div class="stat-label">Average Temp</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon danger">
+                        <i class="fas fa-temperature-high"></i>
+                    </div>
+                    <div class="stat-value">${maxTemp.toFixed(1)}°F</div>
+                    <div class="stat-label">Highest Temp</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-temperature-low"></i>
+                    </div>
+                    <div class="stat-value">${minTemp.toFixed(1)}°F</div>
+                    <div class="stat-label">Lowest Temp</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon ${abnormalCount > 0 ? 'danger' : 'success'}">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-value">${abnormalCount}</div>
+                    <div class="stat-label">Abnormal (${abnormalRate}%)</div>
+                </div>
+            `;
+        }
+
+        function generateAbnormalSummary(records, devices) {
+            const tbody = document.getElementById('abnormal-summary-body');
+            
+            // Count abnormal temperatures by device
+            const abnormalByDevice = {};
+            const totalByDevice = {};
+            
+            devices.forEach(device => {
+                abnormalByDevice[device.id] = 0;
+                totalByDevice[device.id] = 0;
+            });
+            
+            records.forEach(record => {
+                const device = devices.find(d => d.id === record.deviceId);
+                if (device) {
+                    totalByDevice[device.id]++;
+                    if (isTemperatureAbnormal(record.temperature, device)) {
+                        abnormalByDevice[device.id]++;
+                    }
+                }
+            });
+            
+            const sortedDevices = devices
+                .map(device => ({
+                    device: device,
+                    count: abnormalByDevice[device.id],
+                    total: totalByDevice[device.id],
+                    rate: totalByDevice[device.id] > 0 
+                        ? (abnormalByDevice[device.id] / totalByDevice[device.id] * 100).toFixed(1)
+                        : 0
+                }))
+                .filter(item => item.total > 0)
+                .sort((a, b) => b.count - a.count);
+            
+            if (sortedDevices.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            No data available.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = sortedDevices.map(item => `
+                <tr>
+                    <td>${item.device.name}</td>
+                    <td><strong>${item.count}</strong> / ${item.total}</td>
+                    <td>
+                        <span class="badge ${item.count > 0 ? 'badge-danger' : 'badge-success'}">
+                            ${item.rate}%
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function generatePersonSummary(records) {
+            const tbody = document.getElementById('person-summary-body');
+            
+            if (records.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            No data available.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Count by person
+            const countByPerson = {};
+            records.forEach(record => {
+                countByPerson[record.person] = (countByPerson[record.person] || 0) + 1;
+            });
+            
+            const sortedPersons = Object.entries(countByPerson)
+                .map(([person, count]) => ({
+                    person: person,
+                    count: count,
+                    rate: (count / records.length * 100).toFixed(1)
+                }))
+                .sort((a, b) => b.count - a.count);
+            
+            tbody.innerHTML = sortedPersons.map(item => `
+                <tr>
+                    <td><strong>${item.person}</strong></td>
+                    <td>${item.count}</td>
+                    <td>
+                        <span class="badge badge-success">${item.rate}%</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // =============================================
+        // Initialization
+        // =============================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize devices
+            initializeDevices();
+            
+            // Load dashboard
+            loadDashboard();
+            
+            console.log('Temperature Monitoring System initialized');
+        });
+    </script>
+</body>
+</html>
